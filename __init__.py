@@ -370,7 +370,7 @@ def from_rotation_vector(rot):
     return np.exp(quats)
 
 
-def as_euler_angles(q):
+# def as_euler_angles(q):
     """Open Pandora's Box
 
     If somebody is trying to make you use Euler angles, tell them no, and
@@ -418,7 +418,67 @@ def as_euler_angles(q):
     alpha_beta_gamma[..., 1] = 2*np.arccos(np.sqrt((q[..., 0]**2 + q[..., 3]**2)/n))
     alpha_beta_gamma[..., 2] = np.arctan2(q[..., 3], q[..., 0]) - np.arctan2(-q[..., 1], q[..., 2])
     return alpha_beta_gamma
+# update by yangpeicheng 
+def as_euler_angles(q):
+    """Open Pandora's Box
 
+    If somebody is trying to make you use Euler angles, tell them no, and
+    walk away, and go and tell your mum.
+
+    You don't want to use Euler angles.  They are awful.  Stay away.  It's
+    one thing to convert from Euler angles to quaternions; at least you're
+    moving in the right direction.  But to go the other way?!  It's just not
+    right.
+
+    Assumes the Euler angles correspond to the quaternion R via
+
+        R = exp(alpha*z/2) * exp(beta*y/2) * exp(gamma*z/2)
+
+    The angles are naturally in radians.
+
+    NOTE: Before opening an issue reporting something "wrong" with this
+    function, be sure to read all of the following page, *especially* the
+    very last section about opening issues or pull requests.
+    <https://github.com/moble/quaternion/wiki/Euler-angles-are-horrible>
+
+    Parameters
+    ----------
+    q: quaternion or array of quaternions
+        The quaternion(s) need not be normalized, but must all be nonzero
+
+    Returns
+    -------
+    alpha_beta_gamma: float array
+        Output shape is q.shape+(3,).  These represent the angles (alpha,
+        beta, gamma) in radians, where the normalized input quaternion
+        represents `exp(alpha*z/2) * exp(beta*y/2) * exp(gamma*z/2)`.
+
+    Raises
+    ------
+    AllHell
+        ...if you try to actually use Euler angles, when you could have
+        been using quaternions like a sensible person.
+
+    """
+    alpha_beta_gamma = np.empty(q.shape + (3,), dtype=np.float)
+    n = np.norm(q)
+    q = as_float_array(q)
+    # alpha_beta_gamma[..., 0] = np.arctan2(q[..., 3], q[..., 0]) + np.arctan2(-q[..., 1], q[..., 2])
+    # alpha_beta_gamma[..., 1] = 2*np.arccos(np.sqrt((q[..., 0]**2 + q[..., 3]**2)/n))
+    # alpha_beta_gamma[..., 2] = np.arctan2(q[..., 3], q[..., 0]) - np.arctan2(-q[..., 1], q[..., 2])
+
+    alpha_beta_gamma[..., 0] = np.arctan2(
+        2*(q[...,1]*q[...,2]+q[...,0]*q[...,3]),
+        q[...,0]**2+q[...,1]**2-q[...,2]**2-q[...,3]**2
+    )
+    alpha_beta_gamma[..., 1] = np.arcsin(2*(q[...,0]*q[...,2]-q[...,1]*q[...,3]))
+    alpha_beta_gamma[..., 2] = np.arctan2(
+        2*(q[...,0]*q[...,1]+q[...,2]*q[...,3]),
+        q[...,0]**2-q[...,1]**2-q[...,2]**2+q[...,3]**2
+    )
+
+
+    return alpha_beta_gamma
 
 def from_euler_angles(alpha_beta_gamma, beta=None, gamma=None):
     """Improve your life drastically
