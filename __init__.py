@@ -17,7 +17,7 @@ from ._version import __version__
 __doc_title__ = "Quaternion dtype for NumPy"
 __doc__ = "Adds a quaternion dtype to NumPy."
 
-__all__ = ['quaternion',
+__all__ = ['quaternion','normlize'
            'as_quat_array', 'as_spinor_array',
            'as_float_array', 'from_float_array',
            'as_rotation_matrix', 'from_rotation_matrix',
@@ -418,7 +418,7 @@ def from_rotation_vector(rot):
     alpha_beta_gamma[..., 1] = 2*np.arccos(np.sqrt((q[..., 0]**2 + q[..., 3]**2)/n))
     alpha_beta_gamma[..., 2] = np.arctan2(q[..., 3], q[..., 0]) - np.arctan2(-q[..., 1], q[..., 2])
     return alpha_beta_gamma
-# update by yangpeicheng 
+# update by yangpeicheng
 def as_euler_angles(q):
     """Open Pandora's Box
 
@@ -843,3 +843,7 @@ def allclose(a, b, rtol=4*np.finfo(float).eps, atol=0.0, equal_nan=False, verbos
             i = tuple(i)
             print('\n    x[{0}]={1}\n    y[{0}]={2}'.format(i, a[i], b[i]))
     return result
+
+def normlize(q):
+    n = np.linalg.norm(as_float_array(q))
+    return quaternion(q.w/n,q.x/n,q.y/n,q.z/n)
